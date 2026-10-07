@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08111d" />
+  <meta name="description" content="記憶翻牌挑戰 Memory Flip：用最少翻牌與最短時間完成動物與食物配對。" />
+  <title>記憶翻牌挑戰 | Memory Flip</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #08111d;
+      --bg-soft: #0d1a2a;
+      --panel: rgba(14, 28, 45, .78);
+      --panel-strong: #102238;
+      --line: rgba(142, 245, 195, .18);
+      --line-strong: rgba(142, 245, 195, .55);
+      --ink: #effff8;
+      --muted: #8da4b8;
+      --muted-2: #526b80;
+      --mint: #8ef5c3;
+      --mint-deep: #4ad99b;
+      --coral: #ff856e;
+      --violet: #a88cff;
+      --yellow: #ffd27a;
+      --shadow: 0 24px 60px rgba(0, 0, 0, .34);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --sans: 'Space Grotesk', 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 9% 7%, rgba(74, 217, 155, .12), transparent 26rem),
+        radial-gradient(circle at 90% 20%, rgba(168, 140, 255, .12), transparent 28rem),
+        linear-gradient(135deg, #06101b 0%, #0a1625 50%, #08111d 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image: radial-gradient(rgba(255,255,255,.6) .7px, transparent .7px);
+      background-size: 22px 22px;
+      mask-image: linear-gradient(145deg, rgba(0,0,0,.7), transparent 80%);
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 4px; }
+
+    .app-shell { position: relative; width: min(1320px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 46px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
+    .brand { display: inline-flex; align-items: center; gap: 13px; color: var(--ink); text-decoration: none; }
+    .brand-mark { position: relative; width: 42px; height: 42px; transform: rotate(-8deg); }
+    .brand-mark::before, .brand-mark::after { content: ''; position: absolute; width: 23px; height: 30px; border: 2px solid var(--mint); border-radius: 8px; background: #0b1a2a; box-shadow: 0 0 16px rgba(142,245,195,.18); }
+    .brand-mark::before { left: 2px; top: 6px; }
+    .brand-mark::after { right: 2px; bottom: 1px; border-color: var(--violet); }
+    .brand-dot { position: absolute; width: 6px; height: 6px; background: var(--yellow); border-radius: 50%; top: 1px; right: 1px; box-shadow: 0 0 12px var(--yellow); }
+    .brand-name { display: grid; gap: 2px; line-height: 1; }
+    .brand-name strong { font-size: 15px; letter-spacing: .08em; }
+    .brand-name small { color: var(--muted); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
+    .topbar-note { color: var(--muted); font-size: 12px; letter-spacing: .04em; display: flex; align-items: center; gap: 9px; }
+    .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); animation: breathe 2.2s ease-in-out infinite; }
+
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: end; gap: 48px; margin-bottom: 30px; }
+    .eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--mint); font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--mint); box-shadow: 0 0 9px var(--mint); }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(42px, 6vw, 82px); letter-spacing: -.07em; line-height: .94; font-weight: 600; }
+    h1 em { display: block; color: var(--mint); font-style: normal; text-shadow: 0 0 28px rgba(142,245,195,.2); }
+    .hero-copy { max-width: 520px; margin: 24px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+    .hero-aside { border-left: 1px solid var(--line); padding-left: 24px; padding-bottom: 4px; }
+    .hero-aside p { margin: 0 0 10px; color: var(--muted-2); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .hero-aside strong { display: block; color: var(--ink); font-size: 18px; font-weight: 500; line-height: 1.35; }
+    .hero-aside span { display: block; margin-top: 9px; color: var(--mint); font-size: 12px; }
+
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+    .game-panel, .side-panel { border: 1px solid var(--line); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+    .game-panel { min-width: 0; border-radius: var(--radius-xl); padding: 22px; }
+    .side-panel { border-radius: var(--radius-lg); padding: 22px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid rgba(142,245,195,.1); }
+    .panel-kicker { color: var(--muted-2); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .panel-title { margin: 5px 0 0; font-size: 18px; letter-spacing: -.03em; font-weight: 500; }
+    .round-tag { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid rgba(255,210,122,.3); border-radius: 99px; color: var(--yellow); font-family: var(--mono); font-size: 10px; letter-spacing: .06em; white-space: nowrap; }
+    .round-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 18px 0 22px; }
+    .stat { position: relative; min-width: 0; padding: 13px 14px 12px; border: 1px solid rgba(142,245,195,.1); border-radius: var(--radius-md); background: rgba(4, 12, 22, .3); }
+    .stat::after { content: ''; position: absolute; right: 12px; top: 12px; width: 4px; height: 4px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 7px var(--mint); }
+    .stat-label { display: block; color: var(--muted-2); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .stat-value { display: block; margin-top: 8px; font-family: var(--mono); color: var(--ink); font-size: clamp(18px, 2.5vw, 25px); letter-spacing: -.06em; }
+    .stat-value.accent { color: var(--mint); }
+
+    .board-wrap { padding: 24px clamp(4px, 2.5vw, 32px) 28px; border: 1px solid rgba(142,245,195,.1); border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(8,19,33,.88), rgba(11,29,44,.7)); }
+    .board-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .status-message { display: flex; align-items: center; gap: 10px; min-height: 20px; color: var(--muted); font-size: 12px; }
+    .status-icon { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--muted-2); }
+    .status-message.success { color: var(--mint); }
+    .status-message.success .status-icon { background: var(--mint); box-shadow: 0 0 10px var(--mint); }
+    .status-message.error { color: var(--coral); }
+    .status-message.error .status-icon { background: var(--coral); box-shadow: 0 0 10px var(--coral); }
+    .board-index { color: var(--muted-2); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; }
+    .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(8px, 1.2vw, 14px); max-width: 760px; margin: 0 auto; perspective: 1000px; }
+    .board.is-hard { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { position: relative; min-width: 0; aspect-ratio: 1; padding: 0; border: 0; background: transparent; cursor: pointer; perspective: 900px; }
+    .card[disabled] { cursor: default; }
+    .card-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .52s cubic-bezier(.22,.76,.28,1); }
+    .card.is-flipped .card-inner, .card.is-matched .card-inner { transform: rotateY(180deg); }
+    .card-face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 16px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .card-back { border: 1px solid rgba(168,140,255,.43); background: linear-gradient(135deg, #171832, #1d1a45); box-shadow: inset 0 0 0 1px rgba(168,140,255,.06), 0 9px 14px rgba(0,0,0,.17); }
+    .card-back::before { content: ''; position: absolute; inset: 22%; border: 1px solid rgba(168,140,255,.28); border-radius: 10px; transform: rotate(45deg); }
+    .card-back::after { content: '✦'; position: absolute; color: rgba(168,140,255,.76); font-size: 18px; text-shadow: 0 0 15px rgba(168,140,255,.7); }
+    .card-front { transform: rotateY(180deg); border: 1px solid rgba(142,245,195,.5); background: radial-gradient(circle at 38% 28%, rgba(142,245,195,.17), transparent 44%), #102b32; box-shadow: inset 0 0 20px rgba(142,245,195,.08), 0 0 15px rgba(142,245,195,.06); }
+    .card-emoji { font-size: clamp(27px, 4vw, 45px); filter: drop-shadow(0 0 8px rgba(255,255,255,.2)); transform: translateY(-1px); }
+    .card:hover:not([disabled]) .card-back { border-color: var(--violet); box-shadow: inset 0 0 18px rgba(168,140,255,.16), 0 0 18px rgba(168,140,255,.18); transform: translateY(-2px); }
+    .card.is-matched .card-front { border-color: var(--mint); background: radial-gradient(circle, rgba(142,245,195,.23), transparent 62%), #103338; box-shadow: 0 0 23px rgba(142,245,195,.22), inset 0 0 20px rgba(142,245,195,.1); animation: matchPulse .55s ease-out; }
+    .card.is-wrong .card-inner { animation: cardShake .35s ease-in-out; }
+
+    .progress-row { display: flex; align-items: center; gap: 12px; margin-top: 21px; }
+    .progress-track { height: 5px; flex: 1; overflow: hidden; border-radius: 99px; background: rgba(142,245,195,.1); }
+    .progress-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint-deep), var(--mint)); box-shadow: 0 0 12px rgba(142,245,195,.55); transition: width .45s ease; }
+    .progress-label { color: var(--muted); font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-top: 18px; }
+    .difficulty-group { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .control-label { width: 100%; margin-bottom: 3px; color: var(--muted-2); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .difficulty-btn, .reset-btn, .again-btn { border: 1px solid rgba(142,245,195,.18); border-radius: 10px; color: var(--muted); background: rgba(142,245,195,.04); cursor: pointer; transition: .2s ease; }
+    .difficulty-btn { padding: 9px 12px; font-size: 12px; }
+    .difficulty-btn:hover, .difficulty-btn.is-active { border-color: var(--mint); color: var(--mint); background: rgba(142,245,195,.1); box-shadow: 0 0 14px rgba(142,245,195,.1); }
+    .difficulty-btn.is-active { font-weight: 600; }
+    .reset-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 13px; color: var(--ink); font-size: 12px; }
+    .reset-btn:hover { border-color: var(--coral); color: var(--coral); background: rgba(255,133,110,.08); }
+    .reset-icon { font-size: 15px; }
+
+    .side-section + .side-section { margin-top: 28px; padding-top: 26px; border-top: 1px solid rgba(142,245,195,.1); }
+    .side-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 15px; font-size: 14px; font-weight: 500; }
+    .side-heading span { color: var(--muted-2); font-family: var(--mono); font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; }
+    .level-list { display: grid; gap: 8px; }
+    .level-item { display: grid; grid-template-columns: 9px 1fr auto; gap: 10px; align-items: center; padding: 10px 11px; border-radius: 11px; background: rgba(4,12,22,.3); }
+    .level-item::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 7px rgba(168,140,255,.7); }
+    .level-item:nth-child(2)::before { background: var(--yellow); box-shadow: 0 0 7px rgba(255,210,122,.7); }
+    .level-item:nth-child(3)::before { background: var(--coral); box-shadow: 0 0 7px rgba(255,133,110,.7); }
+    .level-item strong { font-size: 12px; font-weight: 500; }
+    .level-item small { display: block; margin-top: 3px; color: var(--muted-2); font-size: 10px; }
+    .level-best { color: var(--mint); font-family: var(--mono); font-size: 11px; }
+    .tip { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .tip strong { color: var(--yellow); font-weight: 500; }
+    .micro-footer { display: flex; align-items: center; gap: 7px; margin-top: 30px; color: var(--muted-2); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .micro-footer::before { content: ''; width: 18px; height: 1px; background: var(--mint); }
+
+    .modal-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(3,9,17,.78); backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease; }
+    .modal-backdrop.is-visible { opacity: 1; visibility: visible; }
+    .result-card { position: relative; width: min(470px, 100%); overflow: hidden; padding: 34px; border: 1px solid var(--line-strong); border-radius: 24px; background: linear-gradient(145deg, #10253a, #0c1727); box-shadow: 0 0 0 1px rgba(142,245,195,.05), 0 26px 80px rgba(0,0,0,.46); transform: translateY(12px) scale(.98); transition: transform .3s ease; }
+    .modal-backdrop.is-visible .result-card { transform: translateY(0) scale(1); }
+    .result-card::before { content: ''; position: absolute; width: 250px; height: 250px; top: -170px; right: -100px; border-radius: 50%; background: rgba(142,245,195,.16); filter: blur(15px); }
+    .result-eyebrow { color: var(--mint); font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; }
+    .result-card h2 { margin: 13px 0 9px; font-size: clamp(30px, 6vw, 44px); letter-spacing: -.07em; line-height: 1; }
+    .result-card > p { margin: 0 0 26px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .new-record { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 17px; padding: 7px 10px; border: 1px solid rgba(255,210,122,.4); border-radius: 99px; color: var(--yellow); font-family: var(--mono); font-size: 10px; }
+    .new-record[hidden] { display: none; }
+    .result-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 26px; }
+    .result-stat { padding: 12px; border-radius: 12px; background: rgba(4,12,22,.38); }
+    .result-stat span { display: block; color: var(--muted-2); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .result-stat strong { display: block; margin-top: 7px; color: var(--ink); font-family: var(--mono); font-size: 17px; }
+    .again-btn { width: 100%; padding: 13px 18px; border-color: var(--mint); color: #07151a; background: var(--mint); font-size: 13px; font-weight: 700; box-shadow: 0 0 20px rgba(142,245,195,.18); }
+    .again-btn:hover { background: #baffda; box-shadow: 0 0 30px rgba(142,245,195,.35); transform: translateY(-1px); }
+
+    @keyframes breathe { 0%, 100% { opacity: .45; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+    @keyframes matchPulse { 0% { transform: scale(.94); } 60% { transform: scale(1.035); } 100% { transform: scale(1); } }
+    @keyframes cardShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    @media (max-width: 980px) {
+      .hero, .game-layout { grid-template-columns: 1fr; }
+      .hero { gap: 28px; }
+      .hero-aside { border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; }
+      .side-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      .side-section + .side-section { margin-top: 0; padding-top: 0; border-top: 0; border-left: 1px solid rgba(142,245,195,.1); padding-left: 24px; }
+      .micro-footer { grid-column: 1 / -1; margin-top: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .app-shell { width: min(100% - 28px, 520px); padding-top: 18px; }
+      .topbar { margin-bottom: 34px; }
+      .topbar-note { display: none; }
+      .hero { margin-bottom: 22px; }
+      .hero-copy { margin-top: 18px; font-size: 13px; }
+      h1 { font-size: clamp(42px, 14vw, 68px); }
+      .game-panel, .side-panel { padding: 14px; border-radius: 19px; }
+      .panel-header { padding: 8px 3px 15px; }
+      .stats { gap: 6px; margin: 14px 0; }
+      .stat { padding: 10px 9px; }
+      .stat-label { font-size: 8px; letter-spacing: 0; }
+      .stat-value { margin-top: 7px; font-size: 17px; }
+      .board-wrap { padding: 16px 8px 20px; }
+      .board { gap: 7px; }
+      .card-face { border-radius: 12px; }
+      .card-back::before { inset: 20%; }
+      .card-back::after { font-size: 14px; }
+      .controls { align-items: stretch; flex-direction: column; gap: 14px; }
+      .reset-btn { justify-content: center; }
+      .side-panel { display: block; }
+      .side-section + .side-section { margin-top: 23px; padding-top: 22px; border-top: 1px solid rgba(142,245,195,.1); border-left: 0; padding-left: 0; }
+      .result-card { padding: 26px 20px; }
+      .result-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Memory Flip 首頁">
+        <span class="brand-mark" aria-hidden="true"><i class="brand-dot"></i></span>
+        <span class="brand-name"><strong>MEMORY FLIP</strong><small>neural arcade / 01</small></span>
+      </a>
+      <div class="topbar-note"><span class="live-dot" aria-hidden="true"></span>LOCAL SESSION · NO ACCOUNT NEEDED</div>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">記憶訓練場 · MEMORY CIRCUIT</p>
+        <h1 id="page-title">記憶翻牌<em>挑戰</em></h1>
+        <p class="hero-copy">把注意力變成你的超能力。記住每張卡片的位置，在最短時間、最少翻牌內完成所有配對。</p>
+      </div>
+      <aside class="hero-aside" aria-label="遊戲提示">
+        <p>本回合提示</p>
+        <strong>先記住位置，<br />再相信直覺。</strong>
+        <span>每一回合都能刷新紀錄。</span>
+      </aside>
+    </section>
+
+    <section class="game-layout" aria-label="記憶翻牌遊戲">
+      <section class="game-panel">
+        <div class="panel-header">
+          <div><div class="panel-kicker">ACTIVE BOARD / <span id="difficulty-code">EASY</span></div><h2 class="panel-title">配對主場</h2></div>
+          <div class="round-tag" id="round-tag">ROUND 01</div>
+        </div>
+
+        <div class="stats" aria-label="遊戲統計">
+          <div class="stat"><span class="stat-label">時間 TIME</span><strong class="stat-value accent" id="time-value">00:00</strong></div>
+          <div class="stat"><span class="stat-label">翻牌 MOVES</span><strong class="stat-value" id="moves-value">00</strong></div>
+          <div class="stat"><span class="stat-label">配對 MATCHES</span><strong class="stat-value" id="matches-value">0 / 4</strong></div>
+          <div class="stat"><span class="stat-label">最佳 BEST</span><strong class="stat-value" id="best-value">—</strong></div>
+        </div>
+
+        <div class="board-wrap">
+          <div class="board-meta"><div class="status-message" id="status-message" role="status" aria-live="polite"><span class="status-icon" aria-hidden="true"></span><span id="status-text">準備好了嗎？翻開第一張卡片。</span></div><span class="board-index" id="board-index">GRID 04 × 02</span></div>
+          <div class="board" id="board" aria-label="記憶配對卡片區域"></div>
+          <div class="progress-row"><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div><span class="progress-label" id="progress-label">0% COMPLETE</span></div>
+        </div>
+
+        <div class="controls">
+          <div class="difficulty-group" role="group" aria-label="選擇遊戲難度">
+            <span class="control-label">SELECT DIFFICULTY</span>
+            <button class="difficulty-btn is-active" type="button" data-level="easy">簡單 <small>4 組</small></button>
+            <button class="difficulty-btn" type="button" data-level="normal">普通 <small>6 組</small></button>
+            <button class="difficulty-btn" type="button" data-level="hard">困難 <small>8 組</small></button>
+          </div>
+          <button class="reset-btn" id="reset-btn" type="button"><span class="reset-icon" aria-hidden="true">↻</span>重新開始</button>
+        </div>
+      </section>
+
+      <aside class="side-panel" aria-label="遊戲情報">
+        <section class="side-section">
+          <h2 class="side-heading">難度紀錄 <span>LOCAL BEST</span></h2>
+          <div class="level-list">
+            <div class="level-item"><span></span><div><strong>簡單</strong><small>4 組 · 8 張卡片</small></div><strong class="level-best" id="best-easy">—</strong></div>
+            <div class="level-item"><span></span><div><strong>普通</strong><small>6 組 · 12 張卡片</small></div><strong class="level-best" id="best-normal">—</strong></div>
+            <div class="level-item"><span></span><div><strong>困難</strong><small>8 組 · 16 張卡片</small></div><strong class="level-best" id="best-hard">—</strong></div>
+          </div>
+        </section>
+        <section class="side-section">
+          <h2 class="side-heading">遊戲節奏 <span>HOW TO PLAY</span></h2>
+          <p class="tip"><strong>01</strong> 翻開一張卡片，記住它的位置。<br /><strong>02</strong> 找到另一張相同圖案。<br /><strong>03</strong> 用更少翻牌，刷新你的紀錄。</p>
+          <div class="micro-footer">best runs stay in this browser</div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="complete-modal" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-hidden="true">
+    <div class="result-card">
+      <div class="result-eyebrow">SYSTEM CLEAR · MEMORY CIRCUIT</div>
+      <h2 id="result-title">配對完成。</h2>
+      <p id="result-copy">你已經清除這一回合的所有卡片，準備挑戰下一個紀錄。</p>
+      <div class="new-record" id="new-record" hidden>✦ NEW PERSONAL BEST</div>
+      <div class="result-stats">
+        <div class="result-stat"><span>難度 LEVEL</span><strong id="result-level">簡單</strong></div>
+        <div class="result-stat"><span>完成時間 TIME</span><strong id="result-time">00:00</strong></div>
+        <div class="result-stat"><span>翻牌 MOVES</span><strong id="result-moves">00</strong></div>
+        <div class="result-stat"><span>最佳紀錄 BEST</span><strong id="result-best">—</strong></div>
+      </div>
+      <button class="again-btn" id="again-btn" type="button">再玩一次 <span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const LEVELS = {
+        easy: { label: '簡單', code: 'EASY', pairs: 4, icons: ['🐱', '🐶', '🍕', '🍩'], board: 'GRID 04 × 02' },
+        normal: { label: '普通', code: 'NORMAL', pairs: 6, icons: ['🐱', '🐶', '🐼', '🦊', '🍕', '🍩'], board: 'GRID 04 × 03' },
+        hard: { label: '困難', code: 'HARD', pairs: 8, icons: ['🐱', '🐶', '🐼', '🦊', '🍕', '🍔', '🍩', '🍣'], board: 'GRID 04 × 04' }
+      };
+      const STORAGE_KEY = 'memory-flip-best-v1';
+      const state = { level: 'easy', deck: [], flipped: [], matched: new Set(), moves: 0, seconds: 0, timerId: null, pendingTimers: new Set(), started: false, locked: false, completed: false, round: 1 };
+
+      const $ = (selector) => document.querySelector(selector);
+      const board = $('#board');
+      const timeValue = $('#time-value');
+      const movesValue = $('#moves-value');
+      const matchesValue = $('#matches-value');
+      const bestValue = $('#best-value');
+      const difficultyCode = $('#difficulty-code');
+      const boardIndex = $('#board-index');
+      const roundTag = $('#round-tag');
+      const statusMessage = $('#status-message');
+      const statusText = $('#status-text');
+      const progressFill = $('#progress-fill');
+      const progressLabel = $('#progress-label');
+      const modal = $('#complete-modal');
+      const bestCache = loadBest();
+
+      function loadBest() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (error) { return {}; }
+      }
+
+      function saveBest(level, result) {
+        const previous = bestCache[level];
+        const isBetter = !previous || result.seconds < previous.seconds || (result.seconds === previous.seconds && result.moves < previous.moves);
+        if (isBetter) { bestCache[level] = result; localStorage.setItem(STORAGE_KEY, JSON.stringify(bestCache)); }
+        return isBetter;
+      }
+
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+      }
+
+      function formatBest(level) {
+        const best = bestCache[level];
+        return best ? `${formatTime(best.seconds)} / ${best.moves}` : '—';
+      }
+
+      function shuffle(items) {
+        const output = [...items];
+        for (let index = output.length - 1; index > 0; index -= 1) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [output[index], output[randomIndex]] = [output[randomIndex], output[index]];
+        }
+        return output;
+      }
+
+      function setStatus(message, type = '') {
+        statusText.textContent = message;
+        statusMessage.className = `status-message${type ? ` ${type}` : ''}`;
+      }
+
+      function updateBestPanels() {
+        bestValue.textContent = formatBest(state.level).split(' / ')[0];
+        Object.keys(LEVELS).forEach((level) => { $(`#best-${level}`).textContent = formatBest(level); });
+      }
+
+      function updateStats() {
+        const level = LEVELS[state.level];
+        timeValue.textContent = formatTime(state.seconds);
+        movesValue.textContent = state.moves.toString().padStart(2, '0');
+        matchesValue.textContent = `${state.matched.size} / ${level.pairs}`;
+        const percent = Math.round((state.matched.size / level.pairs) * 100);
+        progressFill.style.width = `${percent}%`;
+        progressLabel.textContent = `${percent}% COMPLETE`;
+        difficultyCode.textContent = level.code;
+        boardIndex.textContent = level.board;
+        roundTag.textContent = `ROUND ${state.round.toString().padStart(2, '0')}`;
+        updateBestPanels();
+      }
+
+      function createDeck() {
+        const icons = LEVELS[state.level].icons;
+        state.deck = shuffle(icons.flatMap((icon, pairIndex) => [
+          { id: `${pairIndex}-a-${state.round}`, pair: pairIndex, icon },
+          { id: `${pairIndex}-b-${state.round}`, pair: pairIndex, icon }
+        ]));
+      }
+
+      function renderBoard() {
+        board.className = `board${state.level === 'hard' ? ' is-hard' : ''}`;
+        board.innerHTML = '';
+        state.deck.forEach((cardData, index) => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'card';
+          card.dataset.index = index;
+          card.dataset.pair = cardData.pair;
+          card.setAttribute('aria-label', `第 ${index + 1} 張卡片，尚未翻開`);
+          card.innerHTML = `<span class="card-inner"><span class="card-face card-back" aria-hidden="true"></span><span class="card-face card-front" aria-hidden="true"><span class="card-emoji">${cardData.icon}</span></span></span>`;
+          card.addEventListener('click', () => flipCard(index));
+          board.appendChild(card);
+        });
+      }
+
+      function startTimer() {
+        if (state.started) return;
+        state.started = true;
+        state.timerId = window.setInterval(() => { state.seconds += 1; updateStats(); }, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerId) window.clearInterval(state.timerId);
+        state.timerId = null;
+      }
+
+      function schedule(callback, delay) {
+        const timer = window.setTimeout(() => {
+          state.pendingTimers.delete(timer);
+          callback();
+        }, delay);
+        state.pendingTimers.add(timer);
+      }
+
+      function clearPendingTimers() {
+        state.pendingTimers.forEach((timer) => window.clearTimeout(timer));
+        state.pendingTimers.clear();
+      }
+
+      function getCardElement(index) { return board.querySelector(`[data-index="${index}"]`); }
+
+      function reveal(index) {
+        const card = getCardElement(index);
+        if (!card) return;
+        card.classList.add('is-flipped');
+        card.setAttribute('aria-label', `第 ${index + 1} 張卡片，圖案 ${state.deck[index].icon}`);
+      }
+
+      function hide(index) {
+        const card = getCardElement(index);
+        if (!card) return;
+        card.classList.remove('is-flipped', 'is-wrong');
+        card.setAttribute('aria-label', `第 ${index + 1} 張卡片，尚未翻開`);
+      }
+
+      function markMatched(index) {
+        const card = getCardElement(index);
+        if (!card) return;
+        card.classList.add('is-matched');
+        card.disabled = true;
+        card.setAttribute('aria-label', `第 ${index + 1} 張卡片，已配對 ${state.deck[index].icon}`);
+      }
+
+      function flipCard(index) {
+        if (state.locked || state.completed || state.matched.has(index) || state.flipped.includes(index)) return;
+        startTimer();
+        state.flipped.push(index);
+        reveal(index);
+        if (state.flipped.length < 2) {
+          setStatus('位置已記住，尋找相同圖案。');
+          return;
+        }
+
+        state.moves += 1;
+        state.locked = true;
+        const [first, second] = state.flipped;
+        const isMatch = state.deck[first].pair === state.deck[second].pair;
+        updateStats();
+
+        if (isMatch) {
+          schedule(() => {
+            state.matched.add(first);
+            state.matched.add(second);
+            markMatched(first);
+            markMatched(second);
+            state.flipped = [];
+            state.locked = false;
+            setStatus('配對成功！記憶連線保持中。', 'success');
+            updateStats();
+            if (state.matched.size === state.deck.length) finishGame();
+          }, 420);
+        } else {
+          getCardElement(first).classList.add('is-wrong');
+          getCardElement(second).classList.add('is-wrong');
+          setStatus('圖案不同，再記住一次。', 'error');
+          schedule(() => {
+            hide(first);
+            hide(second);
+            state.flipped = [];
+            state.locked = false;
+            setStatus('繼續搜尋下一組配對。');
+          }, 820);
+        }
+      }
+
+      function finishGame() {
+        state.completed = true;
+        stopTimer();
+        const result = { seconds: state.seconds, moves: state.moves };
+        const isNewRecord = saveBest(state.level, result);
+        updateStats();
+        setStatus('所有配對完成！這是一場漂亮的記憶衝刺。', 'success');
+        schedule(() => openResult(result, isNewRecord), 450);
+      }
+
+      function openResult(result, isNewRecord) {
+        const level = LEVELS[state.level];
+        $('#result-level').textContent = level.label;
+        $('#result-time').textContent = formatTime(result.seconds);
+        $('#result-moves').textContent = result.moves.toString().padStart(2, '0');
+        $('#result-best').textContent = formatBest(state.level);
+        $('#result-copy').textContent = isNewRecord ? '新的個人最佳紀錄已寫入這台裝置。要不要趁熱再來一局？' : '你已經清除這一回合的所有卡片，準備挑戰下一個紀錄。';
+        $('#new-record').hidden = !isNewRecord;
+        modal.classList.add('is-visible');
+        modal.setAttribute('aria-hidden', 'false');
+        $('#again-btn').focus();
+      }
+
+      function closeResult() {
+        modal.classList.remove('is-visible');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      function initGame(level = state.level, incrementRound = true) {
+        stopTimer();
+        clearPendingTimers();
+        if (incrementRound) state.round += 1;
+        state.level = level;
+        state.flipped = [];
+        state.matched = new Set();
+        state.moves = 0;
+        state.seconds = 0;
+        state.started = false;
+        state.locked = false;
+        state.completed = false;
+        createDeck();
+        renderBoard();
+        document.querySelectorAll('.difficulty-btn').forEach((button) => button.classList.toggle('is-active', button.dataset.level === state.level));
+        closeResult();
+        setStatus('準備好了嗎？翻開第一張卡片。');
+        updateStats();
+      }
+
+      document.querySelectorAll('.difficulty-btn').forEach((button) => button.addEventListener('click', () => initGame(button.dataset.level)));
+      $('#reset-btn').addEventListener('click', () => initGame(state.level));
+      $('#again-btn').addEventListener('click', () => initGame(state.level));
+      modal.addEventListener('click', (event) => { if (event.target === modal) closeResult(); });
+
+      initGame('easy', false);
+    })();
+  </script>
+</body>
+</html>
